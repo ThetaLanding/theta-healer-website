@@ -177,6 +177,66 @@ export default function AdminPage() {
 
         <section className="space-y-4 bg-white rounded-lg p-6">
           <h2 className="text-xl">Section 1 — Hero</h2>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Main headline (four lines, same style on the site — larger than
+              section headings)
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label className="block text-sm">Headline — line 1</label>
+                <input
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  value={content.hero.headingLineOne}
+                  onChange={(e) =>
+                    updateContent((prev) => ({
+                      ...prev,
+                      hero: { ...prev.hero, headingLineOne: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm">Headline — line 2</label>
+                <input
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  value={content.hero.headingLineTwo}
+                  onChange={(e) =>
+                    updateContent((prev) => ({
+                      ...prev,
+                      hero: { ...prev.hero, headingLineTwo: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm">Headline — line 3</label>
+                <input
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  value={content.hero.headingLineThree}
+                  onChange={(e) =>
+                    updateContent((prev) => ({
+                      ...prev,
+                      hero: { ...prev.hero, headingLineThree: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm">Headline — line 4</label>
+                <input
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  value={content.hero.headingLineFour}
+                  onChange={(e) =>
+                    updateContent((prev) => ({
+                      ...prev,
+                      hero: { ...prev.hero, headingLineFour: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm">Paragraph</label>

@@ -48,20 +48,23 @@ export default function Home() {
       {/* SECTION 1 — HERO */}
       <section className="w-full min-h-[70vh] flex flex-col md:flex-row">
         <div
-          className="md:w-1/2 w-full flex flex-col justify-center px-8 py-16 md:py-24 lg:py-28"
+          className="md:w-1/2 w-full flex flex-col justify-center px-6 md:px-10 lg:px-16 py-20 md:py-24"
           style={{ backgroundColor: content.hero.backgroundLeft }}
         >
-          <div className="max-w-xl space-y-6 text-white">
+          <div className="w-full max-w-xl space-y-6 text-white">
             <div>
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl leading-tight">
-                <span className="block">{content.hero.headingLineOne}</span>
-                <span className="block mt-2 tracking-[0.2em] text-base sm:text-lg lg:text-2xl">
+              {/* Display type: same font as h2/h3 (the-seasons via global styles), larger than any section h2 (max lg:text-4xl) */}
+              <h1 className="hero-main-headline leading-[1.08] space-y-2 sm:space-y-3">
+                <span className="block text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-[0.18em]">
+                  {content.hero.headingLineOne}
+                </span>
+                <span className="block text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-[0.18em]">
                   {content.hero.headingLineTwo}
                 </span>
-                <span className="block tracking-[0.2em] text-base sm:text-lg lg:text-2xl">
+                <span className="block text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-[0.18em]">
                   {content.hero.headingLineThree}
                 </span>
-                <span className="block tracking-[0.2em] text-base sm:text-lg lg:text-2xl">
+                <span className="block text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-[0.18em]">
                   {content.hero.headingLineFour}
                 </span>
               </h1>
@@ -93,13 +96,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 2 — YOU CAN'T SHAKE THE CRAVING */}
+      {/* SECTION 2 — YOU CAN'T SHAKE THE CRAVING: md+ = image as right bg; mobile = text then image (no overlap) */}
       <section
-        className="w-full py-20 md:py-24"
+        className="relative isolate w-full overflow-hidden"
         style={{ backgroundColor: content.section2.background }}
       >
-        <div className="max-w-6xl mx-auto px-6 md:px-10 lg:px-16 flex flex-col md:flex-row gap-12 items-start">
-          <div className="md:w-2/3 space-y-6">
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 md:block lg:w-[46%]"
+          aria-hidden
+        >
+          <Image
+            src={content.section2.imageSrc}
+            alt=""
+            fill
+            sizes="50vw"
+            className="object-contain object-right"
+          />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-6xl px-6 pt-20 pb-8 md:px-10 md:pb-24 md:pt-24 lg:px-16">
+          <div className="max-w-xl space-y-6 lg:max-w-2xl">
             {content.section2.heading && (
               <h2 className="text-2xl sm:text-3xl lg:text-4xl text-[#6b4f62]">
                 <HtmlContent html={content.section2.heading} as="span" />
@@ -117,15 +133,17 @@ export default function Home() {
               )}
             </ul>
           </div>
-          <div className="md:w-1/3 w-full">
-            <div className="relative w-full aspect-[4/5]">
-              <Image
-                src={content.section2.imageSrc}
-                alt=""
-                fill
-                className="object-cover"
-              />
-            </div>
+        </div>
+
+        <div className="relative z-10 px-6 pb-20 md:hidden">
+          <div className="relative mx-auto aspect-[3/4] w-full max-w-lg min-h-[220px] max-h-[55vh]">
+            <Image
+              src={content.section2.imageSrc}
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-contain object-center"
+            />
           </div>
         </div>
       </section>
@@ -135,7 +153,7 @@ export default function Home() {
         className="w-full py-20 md:py-24"
         style={{ backgroundColor: content.section3.background }}
       >
-        <div className="max-w-6xl mx-auto px-6 md:px-10 lg:px-16 flex flex-col md:flex-row gap-10 items-start">
+        <div className="max-w-6xl mx-auto flex flex-col items-start gap-6 px-6 md:flex-row md:gap-10 md:px-10 lg:px-16">
           <div className="md:w-1/3">
             {content.section3.heading && (
               <h2 className="text-2xl sm:text-3xl lg:text-4xl text-white">
@@ -164,8 +182,8 @@ export default function Home() {
         className="w-full py-20 md:py-24"
         style={{ backgroundColor: content.reviews.background }}
       >
-        <div className="max-w-6xl mx-auto px-6 md:px-10 lg:px-16 space-y-10">
-          <div className="text-center">
+        <div className="mx-auto max-w-6xl px-6 md:px-10 lg:px-16">
+          <div className="mb-6 text-center">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl text-[#6b4f62]">
               <HtmlContent html={content.reviews.heading} as="span" />
             </h2>
@@ -236,7 +254,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="flex justify-center">
+          <div className="mt-8 flex justify-center">
             <a
               href={content.reviews.secondaryButtonHref}
               className={BUTTON_SECONDARY}
@@ -345,7 +363,7 @@ export default function Home() {
         className="w-full py-20 md:py-24"
         style={{ backgroundColor: content.section8.background }}
       >
-        <div className="max-w-5xl mx-auto px-6 md:px-10 lg:px-16 space-y-8">
+        <div className="mx-auto max-w-5xl space-y-6 px-6 md:px-10 lg:px-16">
           {content.section8.heading && (
             <h2 className="text-2xl sm:text-3xl lg:text-4xl text-[#6b4f62]">
               {content.section8.heading}
@@ -381,7 +399,7 @@ export default function Home() {
         className="w-full py-20 md:py-24 text-center px-6"
         style={{ backgroundColor: content.truthCallout.background }}
       >
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="mx-auto max-w-3xl space-y-6">
           {content.truthCallout.heading && (
             <h2 className="text-2xl sm:text-3xl lg:text-4xl text-[#6b4f62]">
               {content.truthCallout.heading}
@@ -400,8 +418,8 @@ export default function Home() {
         className="w-full py-20 md:py-24"
         style={{ backgroundColor: content.offer.background }}
       >
-        <div className="max-w-6xl mx-auto px-6 md:px-10 lg:px-16 space-y-10">
-          <div className="space-y-4">
+        <div className="mx-auto max-w-6xl space-y-10 px-6 md:px-10 lg:px-16">
+          <div className="space-y-6">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl text-[#6b4f62]">
               {content.offer.title}
             </h1>
@@ -447,7 +465,7 @@ export default function Home() {
             )}
           </div>
 
-          <div className="text-center space-y-3 pt-4">
+          <div className="space-y-6 pt-4 text-center">
             <h2 className="text-xl sm:text-2xl lg:text-3xl text-[#6b4f62]">
               {content.offer.investmentHeading}
             </h2>
@@ -527,7 +545,7 @@ export default function Home() {
         className="w-full py-20 md:py-24 text-center px-6"
         style={{ backgroundColor: content.closing.background }}
       >
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="mx-auto max-w-3xl space-y-6">
           {content.closing.heading && (
             <h2 className="text-2xl sm:text-3xl lg:text-4xl text-[#6b4f62]">
               {content.closing.heading}
@@ -546,7 +564,7 @@ export default function Home() {
         className="w-full py-16 md:py-20 text-center px-6"
         style={{ backgroundColor: content.footer.background }}
       >
-        <div className="space-y-4">
+        <div className="space-y-6">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl text-white">
             {content.footer.heading}
           </h1>

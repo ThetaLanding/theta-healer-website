@@ -5,61 +5,8 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
-import TextStyle from "@tiptap/extension-text-style";
-import { Extension } from "@tiptap/core";
+import { TextStyle, FontSize } from "@tiptap/extension-text-style";
 import { useEffect } from "react";
-
-declare module "@tiptap/core" {
-  interface Commands<ReturnType> {
-    fontSize: {
-      setFontSize: (size: string) => ReturnType;
-      unsetFontSize: () => ReturnType;
-    };
-  }
-}
-
-const FontSize = Extension.create({
-  name: "fontSize",
-  addOptions() {
-    return {
-      types: ["textStyle"],
-    };
-  },
-  addGlobalAttributes() {
-    return [
-      {
-        types: this.options.types,
-        attributes: {
-          fontSize: {
-            default: null,
-            parseHTML: (element: HTMLElement) =>
-              element.style.fontSize.replace(/['"]+/g, ""),
-            renderHTML: (attributes: { fontSize?: string }) => {
-              if (!attributes.fontSize) {
-                return {};
-              }
-              return {
-                style: `font-size: ${attributes.fontSize}`,
-              };
-            },
-          },
-        },
-      },
-    ];
-  },
-  addCommands() {
-    return {
-      setFontSize:
-        (fontSize: string) =>
-        ({ chain }) =>
-          chain().setMark("textStyle", { fontSize }).run(),
-      unsetFontSize:
-        () =>
-        ({ chain }) =>
-          chain().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run(),
-    };
-  },
-});
 
 type Props = {
   value: string;
@@ -85,7 +32,7 @@ export default function RichTextEditor({ value, onChange }: Props) {
     editorProps: {
       attributes: {
         class:
-          "min-h-[120px] rounded-b-md border border-t-0 border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none rich-text-content",
+          "min-h-[120px] rounded-b-md border border-t-0 border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none rich-text-content ProseMirror",
       },
     },
     content: value || "<p></p>",
@@ -98,13 +45,12 @@ export default function RichTextEditor({ value, onChange }: Props) {
   useEffect(() => {
     if (!editor) return;
     if (editor.getHTML() !== value) {
-      editor.commands.setContent(value || "<p></p>", false);
+      editor.commands.setContent(value || "<p></p>", { emitUpdate: false });
     }
   }, [editor, value]);
 
-  if (!editor) return null;
-
   const setLink = () => {
+    if (!editor) return;
     const previousUrl = editor.getAttributes("link").href as string | undefined;
     const url = window.prompt("Enter URL", previousUrl || "");
     if (url === null) return;
@@ -114,6 +60,19 @@ export default function RichTextEditor({ value, onChange }: Props) {
     }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
   };
+
+  if (!editor) {
+    return (
+      <div className="rich-text-editor rounded-md border border-gray-300 bg-white">
+        <div className="flex flex-wrap gap-2 border-b border-gray-200 bg-[#f8f5f1] p-2 text-xs text-gray-500">
+          Loading editor…
+        </div>
+        <div className="min-h-[120px] px-3 py-2 text-sm text-gray-400">
+          Preparing formatting toolbar…
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rich-text-editor">

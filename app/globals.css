@@ -17,6 +17,9 @@ body {
   color: var(--foreground);
   font-family: "bilo", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
+  /* Disable automatic hyphenation everywhere (inherited by children) */
+  hyphens: none;
+  -webkit-hyphens: none;
 }
 
 h1,
@@ -24,6 +27,12 @@ h2,
 h3 {
   font-family: "the-seasons", "Times New Roman", serif;
   margin: 0;
+}
+
+/* Hero main headline: explicit display font (matches h2/h3), scales above section titles */
+.hero-main-headline {
+  font-family: "the-seasons", "Times New Roman", serif;
+  font-weight: 400;
 }
 
 .rich-text-content p {
@@ -49,4 +58,14 @@ h3 {
 .rich-text-content a {
   color: inherit;
   text-decoration: underline;
+}
+
+/* TipTap / ProseMirror editor surface */
+.rich-text-editor .ProseMirror {
+  outline: none;
+}
+
+.rich-text-editor .ProseMirror:focus {
+  outline: 2px solid rgba(184, 135, 138, 0.45);
+  outline-offset: -2px;
 }
