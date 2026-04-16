@@ -17,6 +17,29 @@ const BUTTON_PRIMARY = `${BUTTON_BASE} bg-[#ffa769] text-[#6b4f62] hover:bg-[#ff
 const BUTTON_SECONDARY = `${BUTTON_BASE} bg-[#b8878a] text-white hover:bg-[#a47174]`;
 const BUTTON_TERTIARY = `${BUTTON_BASE} bg-[#f4f1ec] text-[#6b4f62] hover:bg-[#e4daca]`;
 
+function toInlineHtml(html: string) {
+  return html.replace(/^<p>([\s\S]*)<\/p>$/i, "$1");
+}
+
+function HtmlContent({
+  html,
+  className,
+  as = "div",
+}: {
+  html: string;
+  className?: string;
+  as?: "div" | "span";
+}) {
+  const Tag = as;
+  const renderedHtml = as === "span" ? toInlineHtml(html) : html;
+  return (
+    <Tag
+      className={`rich-text-content ${className ?? ""}`.trim()}
+      dangerouslySetInnerHTML={{ __html: renderedHtml }}
+    />
+  );
+}
+
 export default function Home() {
   const content = getContent();
 
@@ -44,16 +67,17 @@ export default function Home() {
               </h1>
             </div>
             {content.hero.paragraph && (
-              <p className="text-sm sm:text-base leading-relaxed">
-                {content.hero.paragraph}
-              </p>
+              <HtmlContent
+                html={content.hero.paragraph}
+                className="text-sm sm:text-base leading-relaxed"
+              />
             )}
             <div>
               <a
                 href={content.hero.primaryButtonHref}
                 className={BUTTON_PRIMARY}
               >
-                {content.hero.primaryButtonLabel}
+                <HtmlContent html={content.hero.primaryButtonLabel} as="span" />
               </a>
             </div>
           </div>
@@ -78,7 +102,7 @@ export default function Home() {
           <div className="md:w-2/3 space-y-6">
             {content.section2.heading && (
               <h2 className="text-2xl sm:text-3xl lg:text-4xl text-[#6b4f62]">
-                {content.section2.heading}
+                <HtmlContent html={content.section2.heading} as="span" />
               </h2>
             )}
             <ul className="space-y-3 text-sm sm:text-base">
@@ -87,7 +111,7 @@ export default function Home() {
                   item && (
                     <li key={idx} className="flex gap-3">
                       <span className="mt-1 text-[#ffa769]">•</span>
-                      <span>{item}</span>
+                      <HtmlContent html={item} className="flex-1" />
                     </li>
                   )
               )}
@@ -115,7 +139,7 @@ export default function Home() {
           <div className="md:w-1/3">
             {content.section3.heading && (
               <h2 className="text-2xl sm:text-3xl lg:text-4xl text-white">
-                {content.section3.heading}
+                <HtmlContent html={content.section3.heading} as="span" />
               </h2>
             )}
           </div>
@@ -126,7 +150,7 @@ export default function Home() {
                   item && (
                     <li key={idx} className="flex gap-3">
                       <span className="mt-1 text-[#ffa769]">✔</span>
-                      <span>{item}</span>
+                      <HtmlContent html={item} className="flex-1" />
                     </li>
                   )
               )}
@@ -143,7 +167,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 md:px-10 lg:px-16 space-y-10">
           <div className="text-center">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl text-[#6b4f62]">
-              {content.reviews.heading}
+              <HtmlContent html={content.reviews.heading} as="span" />
             </h2>
           </div>
 
@@ -157,12 +181,16 @@ export default function Home() {
                   } hidden md:block bg-white/80 rounded-xl p-8`}
                 >
                   {item.quote && (
-                    <p className="text-sm sm:text-base leading-relaxed">
-                      {item.quote}
-                    </p>
+                    <HtmlContent
+                      html={item.quote}
+                      className="text-sm sm:text-base leading-relaxed"
+                    />
                   )}
                   {item.attribution && (
-                    <p className="mt-4 text-sm">{item.attribution}</p>
+                    <HtmlContent
+                      html={item.attribution}
+                      className="mt-4 text-sm"
+                    />
                   )}
                 </article>
               ))}
@@ -175,10 +203,16 @@ export default function Home() {
                     className="bg-white/80 rounded-xl p-6 w-full"
                   >
                     {item.quote && (
-                      <p className="text-sm leading-relaxed">{item.quote}</p>
+                      <HtmlContent
+                        html={item.quote}
+                        className="text-sm leading-relaxed"
+                      />
                     )}
                     {item.attribution && (
-                      <p className="mt-3 text-sm">{item.attribution}</p>
+                      <HtmlContent
+                        html={item.attribution}
+                        className="mt-3 text-sm"
+                      />
                     )}
                   </article>
                 ))}
@@ -207,7 +241,7 @@ export default function Home() {
               href={content.reviews.secondaryButtonHref}
               className={BUTTON_SECONDARY}
             >
-              {content.reviews.secondaryButtonLabel}
+              <HtmlContent html={content.reviews.secondaryButtonLabel} as="span" />
             </a>
           </div>
         </div>

@@ -1,10 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import RichTextEditor from "./RichTextEditor";
 
 type Content = typeof import("../../lib/content.json");
 
 const PASSWORD = "admin123";
+
+const RICH_TEXT_TAG_REGEX = /<[^>]+>/;
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function normalizeRichText(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "<p></p>";
+  }
+  if (RICH_TEXT_TAG_REGEX.test(trimmed)) {
+    return value;
+  }
+  return `<p>${escapeHtml(value)}</p>`;
+}
 
 export default function AdminPage() {
   const [inputPassword, setInputPassword] = useState("");
@@ -22,7 +45,7 @@ export default function AdminPage() {
         const res = await fetch("/api/content");
         const json = await res.json();
         setContent(json);
-      } catch (e) {
+      } catch {
         setError("Failed to load content.");
       }
     };
@@ -46,6 +69,34 @@ export default function AdminPage() {
 
   const handleSave = async () => {
     if (!content) return;
+    const normalizedContent: Content = {
+      ...content,
+      hero: {
+        ...content.hero,
+        paragraph: normalizeRichText(content.hero.paragraph),
+        primaryButtonLabel: normalizeRichText(content.hero.primaryButtonLabel),
+      },
+      section2: {
+        ...content.section2,
+        heading: normalizeRichText(content.section2.heading),
+        bullets: content.section2.bullets.map(normalizeRichText),
+      },
+      section3: {
+        ...content.section3,
+        heading: normalizeRichText(content.section3.heading),
+        bullets: content.section3.bullets.map(normalizeRichText),
+      },
+      reviews: {
+        ...content.reviews,
+        heading: normalizeRichText(content.reviews.heading),
+        secondaryButtonLabel: normalizeRichText(content.reviews.secondaryButtonLabel),
+        items: content.reviews.items.map((item) => ({
+          ...item,
+          quote: normalizeRichText(item.quote),
+          attribution: normalizeRichText(item.attribution),
+        })),
+      },
+    };
     setSaving(true);
     setError(null);
     setSuccess(null);
@@ -55,13 +106,14 @@ export default function AdminPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(content, null, 2),
+        body: JSON.stringify(normalizedContent, null, 2),
       });
       if (!res.ok) {
         throw new Error("Save failed");
       }
+      setContent(normalizedContent);
       setSuccess("Saved successfully.");
-    } catch (e) {
+    } catch {
       setError("Failed to save content.");
     } finally {
       setSaving(false);
@@ -128,13 +180,12 @@ export default function AdminPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="block text-sm">Paragraph</label>
-              <textarea
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm min-h-[80px]"
+              <RichTextEditor
                 value={content.hero.paragraph}
-                onChange={(e) =>
+                onChange={(html) =>
                   updateContent((prev) => ({
                     ...prev,
-                    hero: { ...prev.hero, paragraph: e.target.value },
+                    hero: { ...prev.hero, paragraph: html },
                   }))
                 }
               />
@@ -156,13 +207,12 @@ export default function AdminPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <label className="block text-sm">Button label</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              <RichTextEditor
                 value={content.hero.primaryButtonLabel}
-                onChange={(e) =>
+                onChange={(html) =>
                   updateContent((prev) => ({
                     ...prev,
-                    hero: { ...prev.hero, primaryButtonLabel: e.target.value },
+                    hero: { ...prev.hero, primaryButtonLabel: html },
                   }))
                 }
               />
@@ -197,16 +247,15 @@ export default function AdminPage() {
         </section>
 
         <section className="space-y-4 bg-white rounded-lg p-6">
-          <h2 className="text-xl">Section 2 — You Can't Shake The Craving</h2>
+          <h2 className="text-xl">Section 2 — You Can&apos;t Shake The Craving</h2>
           <div className="space-y-2">
             <label className="block text-sm">Heading</label>
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            <RichTextEditor
               value={content.section2.heading}
-              onChange={(e) =>
+              onChange={(html) =>
                 updateContent((prev) => ({
                   ...prev,
-                  section2: { ...prev.section2, heading: e.target.value },
+                  section2: { ...prev.section2, heading: html },
                 }))
               }
             />
@@ -215,13 +264,12 @@ export default function AdminPage() {
             {content.section2.bullets.map((bullet, idx) => (
               <div key={idx} className="space-y-2">
                 <label className="block text-sm">Bullet {idx + 1}</label>
-                <textarea
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm min-h-[60px]"
+                <RichTextEditor
                   value={bullet}
-                  onChange={(e) =>
+                  onChange={(html) =>
                     updateContent((prev) => {
                       const updated = [...prev.section2.bullets];
-                      updated[idx] = e.target.value;
+                      updated[idx] = html;
                       return {
                         ...prev,
                         section2: { ...prev.section2, bullets: updated },
@@ -263,16 +311,15 @@ export default function AdminPage() {
         </section>
 
         <section className="space-y-4 bg-white rounded-lg p-6">
-          <h2 className="text-xl">Section 3 — You're Done Waiting</h2>
+          <h2 className="text-xl">Section 3 — You&apos;re Done Waiting</h2>
           <div className="space-y-2">
             <label className="block text-sm">Heading</label>
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            <RichTextEditor
               value={content.section3.heading}
-              onChange={(e) =>
+              onChange={(html) =>
                 updateContent((prev) => ({
                   ...prev,
-                  section3: { ...prev.section3, heading: e.target.value },
+                  section3: { ...prev.section3, heading: html },
                 }))
               }
             />
@@ -281,13 +328,12 @@ export default function AdminPage() {
             {content.section3.bullets.map((bullet, idx) => (
               <div key={idx} className="space-y-2">
                 <label className="block text-sm">Bullet {idx + 1}</label>
-                <textarea
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm min-h-[60px]"
+                <RichTextEditor
                   value={bullet}
-                  onChange={(e) =>
+                  onChange={(html) =>
                     updateContent((prev) => {
                       const updated = [...prev.section3.bullets];
-                      updated[idx] = e.target.value;
+                      updated[idx] = html;
                       return {
                         ...prev,
                         section3: { ...prev.section3, bullets: updated },
@@ -317,13 +363,12 @@ export default function AdminPage() {
           <h2 className="text-xl">Section 4 — Reviews</h2>
           <div className="space-y-2">
             <label className="block text-sm">Heading</label>
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            <RichTextEditor
               value={content.reviews.heading}
-              onChange={(e) =>
+              onChange={(html) =>
                 updateContent((prev) => ({
                   ...prev,
-                  reviews: { ...prev.reviews, heading: e.target.value },
+                  reviews: { ...prev.reviews, heading: html },
                 }))
               }
             />
@@ -332,13 +377,12 @@ export default function AdminPage() {
             <div key={idx} className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <label className="block text-sm">Quote {idx + 1}</label>
-                <textarea
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm min-h-[60px]"
+                <RichTextEditor
                   value={item.quote}
-                  onChange={(e) =>
+                  onChange={(html) =>
                     updateContent((prev) => {
                       const updated = [...prev.reviews.items];
-                      updated[idx] = { ...updated[idx], quote: e.target.value };
+                      updated[idx] = { ...updated[idx], quote: html };
                       return {
                         ...prev,
                         reviews: { ...prev.reviews, items: updated },
@@ -349,15 +393,14 @@ export default function AdminPage() {
               </div>
               <div className="space-y-2">
                 <label className="block text-sm">Attribution {idx + 1}</label>
-                <input
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                <RichTextEditor
                   value={item.attribution}
-                  onChange={(e) =>
+                  onChange={(html) =>
                     updateContent((prev) => {
                       const updated = [...prev.reviews.items];
                       updated[idx] = {
                         ...updated[idx],
-                        attribution: e.target.value,
+                        attribution: html,
                       };
                       return {
                         ...prev,
@@ -372,15 +415,14 @@ export default function AdminPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <label className="block text-sm">Secondary button label</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              <RichTextEditor
                 value={content.reviews.secondaryButtonLabel}
-                onChange={(e) =>
+                onChange={(html) =>
                   updateContent((prev) => ({
                     ...prev,
                     reviews: {
                       ...prev.reviews,
-                      secondaryButtonLabel: e.target.value,
+                      secondaryButtonLabel: html,
                     },
                   }))
                 }
