@@ -2,32 +2,45 @@
 
 import { useEffect, useState } from "react";
 import RichTextEditor from "./RichTextEditor";
-
 type Content = typeof import("../../lib/content.json");
+
+const SECTION_KEYS = [
+  "hero",
+  "section2",
+  "section3",
+  "reviews",
+  "about",
+  "imagine",
+  "screenshots",
+  "section8",
+  "truthCallout",
+  "offer",
+  "ctaBanner",
+  "whyWorks",
+  "closing",
+  "footer",
+] as const;
+
+type SectionKey = (typeof SECTION_KEYS)[number];
 
 const PASSWORD = "admin123";
 
-const RICH_TEXT_TAG_REGEX = /<[^>]+>/;
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function normalizeRichText(value: string) {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return "<p></p>";
-  }
-  if (RICH_TEXT_TAG_REGEX.test(trimmed)) {
-    return value;
-  }
-  return `<p>${escapeHtml(value)}</p>`;
-}
+const SECTION_LABELS: Record<SectionKey, string> = {
+  hero: "Hero",
+  section2: "Section 2",
+  section3: "Section 3",
+  reviews: "Reviews",
+  about: "About",
+  imagine: "Imagine",
+  screenshots: "Screenshots",
+  section8: "Section 8",
+  truthCallout: "Truth Callout",
+  offer: "Offer",
+  ctaBanner: "CTA Banner",
+  whyWorks: "Why Works",
+  closing: "Closing",
+  footer: "Footer",
+};
 
 export default function AdminPage() {
   const [inputPassword, setInputPassword] = useState("");
@@ -69,34 +82,6 @@ export default function AdminPage() {
 
   const handleSave = async () => {
     if (!content) return;
-    const normalizedContent: Content = {
-      ...content,
-      hero: {
-        ...content.hero,
-        paragraph: normalizeRichText(content.hero.paragraph),
-        primaryButtonLabel: normalizeRichText(content.hero.primaryButtonLabel),
-      },
-      section2: {
-        ...content.section2,
-        heading: normalizeRichText(content.section2.heading),
-        bullets: content.section2.bullets.map(normalizeRichText),
-      },
-      section3: {
-        ...content.section3,
-        heading: normalizeRichText(content.section3.heading),
-        bullets: content.section3.bullets.map(normalizeRichText),
-      },
-      reviews: {
-        ...content.reviews,
-        heading: normalizeRichText(content.reviews.heading),
-        secondaryButtonLabel: normalizeRichText(content.reviews.secondaryButtonLabel),
-        items: content.reviews.items.map((item) => ({
-          ...item,
-          quote: normalizeRichText(item.quote),
-          attribution: normalizeRichText(item.attribution),
-        })),
-      },
-    };
     setSaving(true);
     setError(null);
     setSuccess(null);
@@ -106,12 +91,11 @@ export default function AdminPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(normalizedContent, null, 2),
+        body: JSON.stringify(content, null, 2),
       });
       if (!res.ok) {
         throw new Error("Save failed");
       }
-      setContent(normalizedContent);
       setSuccess("Saved successfully.");
     } catch {
       setError("Failed to save content.");
@@ -157,6 +141,85 @@ export default function AdminPage() {
     );
   }
 
+  const updateSection = (key: SectionKey, value: unknown) => {
+    updateContent((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const renderEditor = (
+    value: unknown,
+    onChange: (next: unknown) => void,
+    fieldPath: string
+  ): React.ReactNode => {
+    if (typeof value === "string") {
+      const isColor = /(?:^|\.)(?:background|color)$/i.test(fieldPath);
+      const isPathLike = /(?:src|href|image|backgroundImage)$/i.test(fieldPath);
+      if (isColor || isPathLike) {
+        return (
+          <input
+            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        );
+      }
+      return <RichTextEditor value={value} onChange={(html) => onChange(html)} />;
+    }
+
+    if (Array.isArray(value)) {
+      return (
+        <div className="space-y-3">
+          {value.map((item, idx) => (
+            <div key={idx} className="space-y-2 border border-gray-200 rounded-md p-3">
+              <label className="block text-xs text-gray-500">Item {idx + 1}</label>
+              {renderEditor(
+                item,
+                (next) => {
+                  const nextArray = [...value];
+                  nextArray[idx] = next;
+                  onChange(nextArray);
+                },
+                `${fieldPath}.${idx}`
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (value && typeof value === "object") {
+      const entries = Object.entries(value as Record<string, unknown>);
+      return (
+        <div className="space-y-4">
+          {entries.map(([key, nested]) => (
+            <div key={key} className="space-y-2">
+              <label className="block text-sm capitalize">{key}</label>
+              {renderEditor(
+                nested,
+                (next) =>
+                  onChange({
+                    ...(value as Record<string, unknown>),
+                    [key]: next,
+                  }),
+                `${fieldPath}.${key}`
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <input
+        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        value={String(value ?? "")}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    );
+  };
+
   return (
     <main className="min-h-screen bg-[#f4f1ec] text-[#6b4f62] px-4 py-10">
       <div className="max-w-5xl mx-auto space-y-8">
@@ -175,340 +238,16 @@ export default function AdminPage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
         {success && <p className="text-sm text-emerald-700">{success}</p>}
 
-        <section className="space-y-4 bg-white rounded-lg p-6">
-          <h2 className="text-xl">Section 1 — Hero</h2>
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600">
-              Main headline (four lines, same style on the site — larger than
-              section headings)
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="block text-sm">Headline — line 1</label>
-                <input
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  value={content.hero.headingLineOne}
-                  onChange={(e) =>
-                    updateContent((prev) => ({
-                      ...prev,
-                      hero: { ...prev.hero, headingLineOne: e.target.value },
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm">Headline — line 2</label>
-                <input
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  value={content.hero.headingLineTwo}
-                  onChange={(e) =>
-                    updateContent((prev) => ({
-                      ...prev,
-                      hero: { ...prev.hero, headingLineTwo: e.target.value },
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm">Headline — line 3</label>
-                <input
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  value={content.hero.headingLineThree}
-                  onChange={(e) =>
-                    updateContent((prev) => ({
-                      ...prev,
-                      hero: { ...prev.hero, headingLineThree: e.target.value },
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm">Headline — line 4</label>
-                <input
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                  value={content.hero.headingLineFour}
-                  onChange={(e) =>
-                    updateContent((prev) => ({
-                      ...prev,
-                      hero: { ...prev.hero, headingLineFour: e.target.value },
-                    }))
-                  }
-                />
-              </div>
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label className="block text-sm">Paragraph</label>
-              <RichTextEditor
-                value={content.hero.paragraph}
-                onChange={(html) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    hero: { ...prev.hero, paragraph: html },
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm">Hero image path</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                value={content.hero.imageSrc}
-                onChange={(e) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    hero: { ...prev.hero, imageSrc: e.target.value },
-                  }))
-                }
-              />
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <label className="block text-sm">Button label</label>
-              <RichTextEditor
-                value={content.hero.primaryButtonLabel}
-                onChange={(html) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    hero: { ...prev.hero, primaryButtonLabel: html },
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm">Button link (Book a Call)</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                value={content.hero.primaryButtonHref}
-                onChange={(e) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    hero: { ...prev.hero, primaryButtonHref: e.target.value },
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm">Left background color</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                value={content.hero.backgroundLeft}
-                onChange={(e) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    hero: { ...prev.hero, backgroundLeft: e.target.value },
-                  }))
-                }
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-4 bg-white rounded-lg p-6">
-          <h2 className="text-xl">Section 2 — You Can&apos;t Shake The Craving</h2>
-          <div className="space-y-2">
-            <label className="block text-sm">Heading</label>
-            <RichTextEditor
-              value={content.section2.heading}
-              onChange={(html) =>
-                updateContent((prev) => ({
-                  ...prev,
-                  section2: { ...prev.section2, heading: html },
-                }))
-              }
-            />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {content.section2.bullets.map((bullet, idx) => (
-              <div key={idx} className="space-y-2">
-                <label className="block text-sm">Bullet {idx + 1}</label>
-                <RichTextEditor
-                  value={bullet}
-                  onChange={(html) =>
-                    updateContent((prev) => {
-                      const updated = [...prev.section2.bullets];
-                      updated[idx] = html;
-                      return {
-                        ...prev,
-                        section2: { ...prev.section2, bullets: updated },
-                      };
-                    })
-                  }
-                />
-              </div>
-            ))}
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <label className="block text-sm">Image path</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                value={content.section2.imageSrc}
-                onChange={(e) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    section2: { ...prev.section2, imageSrc: e.target.value },
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm">Background color</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                value={content.section2.background}
-                onChange={(e) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    section2: { ...prev.section2, background: e.target.value },
-                  }))
-                }
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-4 bg-white rounded-lg p-6">
-          <h2 className="text-xl">Section 3 — You&apos;re Done Waiting</h2>
-          <div className="space-y-2">
-            <label className="block text-sm">Heading</label>
-            <RichTextEditor
-              value={content.section3.heading}
-              onChange={(html) =>
-                updateContent((prev) => ({
-                  ...prev,
-                  section3: { ...prev.section3, heading: html },
-                }))
-              }
-            />
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {content.section3.bullets.map((bullet, idx) => (
-              <div key={idx} className="space-y-2">
-                <label className="block text-sm">Bullet {idx + 1}</label>
-                <RichTextEditor
-                  value={bullet}
-                  onChange={(html) =>
-                    updateContent((prev) => {
-                      const updated = [...prev.section3.bullets];
-                      updated[idx] = html;
-                      return {
-                        ...prev,
-                        section3: { ...prev.section3, bullets: updated },
-                      };
-                    })
-                  }
-                />
-              </div>
-            ))}
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm">Background color</label>
-            <input
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-              value={content.section3.background}
-              onChange={(e) =>
-                updateContent((prev) => ({
-                  ...prev,
-                  section3: { ...prev.section3, background: e.target.value },
-                }))
-              }
-            />
-          </div>
-        </section>
-
-        <section className="space-y-4 bg-white rounded-lg p-6">
-          <h2 className="text-xl">Section 4 — Reviews</h2>
-          <div className="space-y-2">
-            <label className="block text-sm">Heading</label>
-            <RichTextEditor
-              value={content.reviews.heading}
-              onChange={(html) =>
-                updateContent((prev) => ({
-                  ...prev,
-                  reviews: { ...prev.reviews, heading: html },
-                }))
-              }
-            />
-          </div>
-          {content.reviews.items.map((item, idx) => (
-            <div key={idx} className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="block text-sm">Quote {idx + 1}</label>
-                <RichTextEditor
-                  value={item.quote}
-                  onChange={(html) =>
-                    updateContent((prev) => {
-                      const updated = [...prev.reviews.items];
-                      updated[idx] = { ...updated[idx], quote: html };
-                      return {
-                        ...prev,
-                        reviews: { ...prev.reviews, items: updated },
-                      };
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm">Attribution {idx + 1}</label>
-                <RichTextEditor
-                  value={item.attribution}
-                  onChange={(html) =>
-                    updateContent((prev) => {
-                      const updated = [...prev.reviews.items];
-                      updated[idx] = {
-                        ...updated[idx],
-                        attribution: html,
-                      };
-                      return {
-                        ...prev,
-                        reviews: { ...prev.reviews, items: updated },
-                      };
-                    })
-                  }
-                />
-              </div>
-            </div>
-          ))}
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <label className="block text-sm">Secondary button label</label>
-              <RichTextEditor
-                value={content.reviews.secondaryButtonLabel}
-                onChange={(html) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    reviews: {
-                      ...prev.reviews,
-                      secondaryButtonLabel: html,
-                    },
-                  }))
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm">Secondary button link</label>
-              <input
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                value={content.reviews.secondaryButtonHref}
-                onChange={(e) =>
-                  updateContent((prev) => ({
-                    ...prev,
-                    reviews: {
-                      ...prev.reviews,
-                      secondaryButtonHref: e.target.value,
-                    },
-                  }))
-                }
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Additional sections (about, imagine, screenshots, section8, truthCallout, offer, ctaBanner, whyWorks, closing, footer) */}
-        {/* To keep this concise, they follow the same pattern: label + inputs for text, links, images, and background colors. */}
+        {SECTION_KEYS.map((sectionKey) => (
+          <section key={sectionKey} className="space-y-4 bg-white rounded-lg p-6">
+            <h2 className="text-xl">{SECTION_LABELS[sectionKey]}</h2>
+            {renderEditor(
+              content[sectionKey as keyof Content],
+              (next) => updateSection(sectionKey, next),
+              sectionKey
+            )}
+          </section>
+        ))}
       </div>
     </main>
   );

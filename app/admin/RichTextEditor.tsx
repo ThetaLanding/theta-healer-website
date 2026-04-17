@@ -5,7 +5,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
-import { TextStyle, FontSize } from "@tiptap/extension-text-style";
+import { TextStyle, FontSize, Color } from "@tiptap/extension-text-style";
 import { useEffect } from "react";
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 };
 
 const FONT_SIZES = ["14px", "16px", "18px", "20px", "24px"];
+const TEXT_COLORS = ["#000000", "#6b4f62", "#ffffff", "#b8878a", "#ffa769"];
 
 export default function RichTextEditor({ value, onChange }: Props) {
   const editor = useEditor({
@@ -25,6 +26,7 @@ export default function RichTextEditor({ value, onChange }: Props) {
       }),
       TextStyle,
       FontSize,
+      Color,
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
@@ -77,6 +79,39 @@ export default function RichTextEditor({ value, onChange }: Props) {
   return (
     <div className="rich-text-editor">
       <div className="flex flex-wrap gap-2 rounded-t-md border border-gray-300 bg-[#f8f5f1] p-2 text-xs">
+        <select
+          className="rounded border border-gray-300 bg-white px-2 py-1"
+          value={
+            editor.isActive("heading", { level: 1 })
+              ? "h1"
+              : editor.isActive("heading", { level: 2 })
+              ? "h2"
+              : editor.isActive("heading", { level: 3 })
+              ? "h3"
+              : "p"
+          }
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "h1") {
+              editor.chain().focus().toggleHeading({ level: 1 }).run();
+              return;
+            }
+            if (value === "h2") {
+              editor.chain().focus().toggleHeading({ level: 2 }).run();
+              return;
+            }
+            if (value === "h3") {
+              editor.chain().focus().toggleHeading({ level: 3 }).run();
+              return;
+            }
+            editor.chain().focus().setParagraph().run();
+          }}
+        >
+          <option value="p">Paragraph</option>
+          <option value="h1">H1</option>
+          <option value="h2">H2</option>
+          <option value="h3">H3</option>
+        </select>
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -148,6 +183,24 @@ export default function RichTextEditor({ value, onChange }: Props) {
           {FONT_SIZES.map((size) => (
             <option key={size} value={size}>
               {size}
+            </option>
+          ))}
+        </select>
+        <select
+          className="rounded border border-gray-300 bg-white px-2 py-1"
+          value={(editor.getAttributes("textStyle").color as string) || ""}
+          onChange={(e) => {
+            if (!e.target.value) {
+              editor.chain().focus().unsetColor().run();
+              return;
+            }
+            editor.chain().focus().setColor(e.target.value).run();
+          }}
+        >
+          <option value="">Text Color</option>
+          {TEXT_COLORS.map((color) => (
+            <option key={color} value={color}>
+              {color}
             </option>
           ))}
         </select>
