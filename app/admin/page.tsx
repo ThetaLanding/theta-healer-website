@@ -179,31 +179,41 @@ export default function AdminPage() {
   const renderEditor = (
     value: unknown,
     onChange: (next: unknown) => void,
-    fieldPath: string
+    fieldPath: string,
+    richTextCompact = false
   ): React.ReactNode => {
     if (typeof value === "string") {
-      const isColor = /(?:^|\.)(?:background|color)$/i.test(fieldPath);
+      const isColor =
+        /(?:^|\.)(?:backgroundOuter|backgroundInner|background|color)$/i.test(
+          fieldPath
+        );
       const isPathLike =
         /(?:src|href|image|backgroundImage)$/i.test(fieldPath) ||
         /images\.\d+$/i.test(fieldPath);
       if (isColor || isPathLike) {
         return (
           <input
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            className="w-full border border-gray-300 rounded-md px-2 py-1 text-[13px]"
             value={value}
             onChange={(e) => onChange(e.target.value)}
           />
         );
       }
-      return <RichTextEditor value={value} onChange={(html) => onChange(html)} />;
+      return (
+        <RichTextEditor
+          value={value}
+          onChange={(html) => onChange(html)}
+          compact={richTextCompact}
+        />
+      );
     }
 
     if (Array.isArray(value)) {
       if (fieldPath === "about.paragraphs") {
         const combined = value.filter((item): item is string => typeof item === "string").join("\n\n");
         return (
-          <div className="space-y-2">
-            <label className="block text-sm">Paragraph</label>
+          <div className="space-y-0.5">
+            <label className="block text-[11px] font-medium text-gray-600">Paragraph</label>
             <RichTextEditor
               value={combined}
               onChange={(html) => onChange([html])}
@@ -211,11 +221,91 @@ export default function AdminPage() {
           </div>
         );
       }
+
+      const allStrings = value.length > 0 && value.every((item): item is string => typeof item === "string");
+      if (fieldPath === "screenshots.images" && allStrings) {
+        return (
+          <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 md:grid-cols-3">
+            {value.map((item, idx) => (
+              <div key={idx} className="min-w-0 space-y-0.5 rounded border border-gray-200 bg-gray-50/60 p-1.5">
+                <label className="block text-[10px] font-medium uppercase tracking-wide text-gray-500">
+                  Slot {idx + 1}
+                </label>
+                {renderEditor(
+                  item,
+                  (next) => {
+                    const nextArray = [...value];
+                    nextArray[idx] = next;
+                    onChange(nextArray);
+                  },
+                  `${fieldPath}.${idx}`,
+                  false
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      if (
+        fieldPath === "reviews.items" &&
+        value.every((item) => item !== null && typeof item === "object")
+      ) {
+        return (
+          <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-3">
+            {value.map((item, idx) => (
+              <div key={idx} className="min-w-0 space-y-1 rounded border border-gray-200 p-1.5">
+                <div className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                  Review {idx + 1}
+                </div>
+                {renderEditor(
+                  item,
+                  (next) => {
+                    const nextArray = [...value];
+                    nextArray[idx] = next;
+                    onChange(nextArray);
+                  },
+                  `${fieldPath}.${idx}`,
+                  false
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
+
+      if (
+        fieldPath === "offer.columns" &&
+        value.every((item) => item !== null && typeof item === "object")
+      ) {
+        return (
+          <div className="grid grid-cols-1 gap-1.5 lg:grid-cols-3">
+            {value.map((item, idx) => (
+              <div key={idx} className="min-w-0 space-y-1 rounded border border-gray-200 p-1.5">
+                <div className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+                  Column {idx + 1}
+                </div>
+                {renderEditor(
+                  item,
+                  (next) => {
+                    const nextArray = [...value];
+                    nextArray[idx] = next;
+                    onChange(nextArray);
+                  },
+                  `${fieldPath}.${idx}`,
+                  false
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
+
       return (
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {value.map((item, idx) => (
-            <div key={idx} className="space-y-2 border border-gray-200 rounded-md p-3">
-              <label className="block text-xs text-gray-500">Item {idx + 1}</label>
+            <div key={idx} className="space-y-0.5 rounded border border-gray-200 p-1.5">
+              <label className="block text-[11px] font-medium text-gray-500">Item {idx + 1}</label>
               {renderEditor(
                 item,
                 (next) => {
@@ -223,7 +313,8 @@ export default function AdminPage() {
                   nextArray[idx] = next;
                   onChange(nextArray);
                 },
-                `${fieldPath}.${idx}`
+                `${fieldPath}.${idx}`,
+                false
               )}
             </div>
           ))}
@@ -232,6 +323,82 @@ export default function AdminPage() {
     }
 
     if (value && typeof value === "object") {
+      if (fieldPath === "hero") {
+        const record = value as Record<string, unknown>;
+        const patch = (key: string, next: unknown) =>
+          onChange({
+            ...record,
+            [key]: next,
+          });
+        const headlines = ["headingLineOne", "headingLineTwo", "headingLineThree", "headingLineFour"] as const;
+        return (
+          <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {headlines.map((key, i) => (
+                <div key={key} className="min-w-0 space-y-0.5">
+                  <label className="block text-[11px] font-medium text-gray-600">Headline {i + 1}</label>
+                  {renderEditor(
+                    record[key],
+                    (next) => patch(key, next),
+                    `${fieldPath}.${key}`,
+                    true
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="space-y-0.5">
+              <label className="block text-[11px] font-medium text-gray-600">Paragraph</label>
+              {renderEditor(
+                record.paragraph,
+                (next) => patch("paragraph", next),
+                `${fieldPath}.paragraph`,
+                false
+              )}
+            </div>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <div className="min-w-0 space-y-0.5">
+                <label className="block text-[11px] font-medium text-gray-600">Background left</label>
+                {renderEditor(
+                  record.backgroundLeft,
+                  (next) => patch("backgroundLeft", next),
+                  `${fieldPath}.backgroundLeft`,
+                  false
+                )}
+              </div>
+              <div className="min-w-0 space-y-0.5">
+                <label className="block text-[11px] font-medium text-gray-600">Image src</label>
+                {renderEditor(
+                  record.imageSrc,
+                  (next) => patch("imageSrc", next),
+                  `${fieldPath}.imageSrc`,
+                  false
+                )}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              <div className="min-w-0 space-y-0.5">
+                <label className="block text-[11px] font-medium text-gray-600">Primary button label</label>
+                {renderEditor(
+                  record.primaryButtonLabel,
+                  (next) => patch("primaryButtonLabel", next),
+                  `${fieldPath}.primaryButtonLabel`,
+                  false
+                )}
+              </div>
+              <div className="min-w-0 space-y-0.5">
+                <label className="block text-[11px] font-medium text-gray-600">Primary button href</label>
+                {renderEditor(
+                  record.primaryButtonHref,
+                  (next) => patch("primaryButtonHref", next),
+                  `${fieldPath}.primaryButtonHref`,
+                  false
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      }
+
       if (/^section8\.items\.\d+$/.test(fieldPath)) {
         const section8Item = value as { title?: string; body?: string };
         const merged = [section8Item.title ?? "", section8Item.body ?? ""]
@@ -239,8 +406,8 @@ export default function AdminPage() {
           .join(" ")
           .trim();
         return (
-          <div className="space-y-2">
-            <label className="block text-sm">Text</label>
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-gray-600">Text</label>
             <RichTextEditor
               value={merged}
               onChange={(html) =>
@@ -255,10 +422,10 @@ export default function AdminPage() {
       }
       const entries = Object.entries(value as Record<string, unknown>);
       return (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {entries.map(([key, nested]) => (
-            <div key={key} className="space-y-2">
-              <label className="block text-sm capitalize">{key}</label>
+            <div key={key} className="space-y-0.5">
+              <label className="block text-[11px] font-medium text-gray-600 capitalize">{key}</label>
               {renderEditor(
                 nested,
                 (next) =>
@@ -266,7 +433,8 @@ export default function AdminPage() {
                     ...(value as Record<string, unknown>),
                     [key]: next,
                   }),
-                `${fieldPath}.${key}`
+                `${fieldPath}.${key}`,
+                false
               )}
             </div>
           ))}
@@ -276,7 +444,7 @@ export default function AdminPage() {
 
     return (
       <input
-        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+        className="w-full border border-gray-300 rounded-md px-2 py-1 text-[13px]"
         value={String(value ?? "")}
         onChange={(e) => onChange(e.target.value)}
       />
@@ -284,28 +452,25 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f4f1ec] text-[#6b4f62] px-4 py-10">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <header className="flex items-center justify-between gap-4">
-          <h1 className="text-2xl">Editor Dashboard</h1>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="inline-flex items-center justify-center rounded-full px-6 py-2 text-xs tracking-[0.18em] uppercase bg-[#ffa769] text-[#6b4f62]"
-          >
-            {saving ? "Saving…" : "Save Changes"}
-          </button>
+    <main className="min-h-screen bg-[#f4f1ec] text-[#6b4f62] px-3 py-4 pb-24 sm:px-4 sm:pb-28">
+      <div className="max-w-7xl mx-auto space-y-3">
+        <header>
+          <h1 className="text-lg font-semibold tracking-tight">Editor Dashboard</h1>
         </header>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        {success && <p className="text-sm text-emerald-700">{success}</p>}
+        {error && <p className="text-xs text-red-600">{error}</p>}
+        {success && <p className="text-xs text-emerald-700">{success}</p>}
 
         {SECTION_KEYS.map((sectionKey) => (
-          <section key={sectionKey} className="space-y-4 bg-white rounded-lg p-6">
-            <h2 className="text-xl">{SECTION_LABELS[sectionKey]}</h2>
+          <section
+            key={sectionKey}
+            className="space-y-2 bg-white rounded-md border border-gray-200/80 p-3 shadow-sm"
+          >
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[#5a4154]">
+              {SECTION_LABELS[sectionKey]}
+            </h2>
             {sectionKey === "screenshots" && (
-              <p className="text-sm text-gray-600">
+              <p className="text-xs text-gray-600 leading-snug">
                 Nine slots (grid). Prefer a root path from <code className="text-xs">public/</code>, e.g.{" "}
                 <code className="text-xs">/images/your-shot.jpg</code> (leading <code className="text-xs">/</code>{" "}
                 required for optimized images), or a full <code className="text-xs">https://</code> URL. Leave empty for a
@@ -313,8 +478,8 @@ export default function AdminPage() {
               </p>
             )}
             {sectionKey === "reviews" && (
-              <p className="text-sm text-gray-600">
-                Three reviews: the site shows one card at a time with prev/next arrows.
+              <p className="text-[11px] text-gray-600 leading-snug">
+                Large screens: three columns on the site; smaller screens: one card with prev/next.
               </p>
             )}
             {renderEditor(
@@ -324,6 +489,17 @@ export default function AdminPage() {
             )}
           </section>
         ))}
+      </div>
+
+      <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 flex justify-end p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="pointer-events-auto inline-flex items-center justify-center rounded-full px-5 py-2.5 text-[11px] font-semibold tracking-[0.14em] uppercase shadow-lg ring-1 ring-[#6b4f62]/15 bg-[#ffa769] text-[#6b4f62] transition hover:brightness-105 disabled:opacity-60"
+        >
+          {saving ? "Saving…" : "Save Changes"}
+        </button>
       </div>
     </main>
   );

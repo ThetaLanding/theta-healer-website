@@ -4,9 +4,13 @@ import { useCallback, useState } from "react";
 
 type ReviewItem = { quote?: string; attribution?: string };
 
-function ReviewBlock({ quote, attribution }: ReviewItem) {
+/** Same shell as “What’s included” columns on large screens — three-column cards. */
+export const reviewThreeColumnCardClass =
+  "flex min-h-0 max-h-[min(16rem,52vh)] w-full min-w-0 flex-col overflow-y-auto bg-white/80 px-6 py-5 shadow-sm sm:px-10 sm:py-6 md:rounded-xl";
+
+export function ReviewBlock({ quote, attribution }: ReviewItem) {
   return (
-    <article className="flex min-h-0 max-h-[min(16rem,52vh)] w-full shrink-0 flex-col overflow-y-auto bg-white/80 px-6 py-5 shadow-sm sm:px-10 sm:py-6 md:rounded-xl">
+    <article className={`${reviewThreeColumnCardClass} shrink-0`}>
       {quote && (
         <div
           className="rich-text-content text-sm leading-relaxed text-[#6b4f62] sm:text-base"

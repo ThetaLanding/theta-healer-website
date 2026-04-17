@@ -11,12 +11,20 @@ import { useEffect } from "react";
 type Props = {
   value: string;
   onChange: (html: string) => void;
+  /** Shorter editor chrome for dense admin layouts (e.g. hero headline grid). */
+  compact?: boolean;
 };
 
 const FONT_SIZES = ["14px", "16px", "18px", "20px", "24px"];
 const TEXT_COLORS = ["#000000", "#6b4f62", "#ffffff", "#b8878a", "#ffa769"];
 
-export default function RichTextEditor({ value, onChange }: Props) {
+/** Admin-only editor: shared dense toolbar / control sizing */
+const TOOLBAR_ROW =
+  "flex flex-wrap items-center gap-1 rounded-t-md border border-gray-300 bg-[#f8f5f1] p-1 text-[11px] leading-tight";
+const CTRL = "rounded border border-gray-300 bg-white px-1.5 py-0.5";
+
+export default function RichTextEditor({ value, onChange, compact }: Props) {
+  const bodyMinH = compact ? "min-h-[52px]" : "min-h-[80px]";
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -33,8 +41,7 @@ export default function RichTextEditor({ value, onChange }: Props) {
     ],
     editorProps: {
       attributes: {
-        class:
-          "min-h-[120px] rounded-b-md border border-t-0 border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none rich-text-content ProseMirror",
+        class: `${bodyMinH} rounded-b-md border border-t-0 border-gray-300 bg-white px-2 py-1 text-[13px] focus:outline-none rich-text-content ProseMirror sm:py-1.5`,
       },
     },
     content: value || "<p></p>",
@@ -66,10 +73,8 @@ export default function RichTextEditor({ value, onChange }: Props) {
   if (!editor) {
     return (
       <div className="rich-text-editor rounded-md border border-gray-300 bg-white">
-        <div className="flex flex-wrap gap-2 border-b border-gray-200 bg-[#f8f5f1] p-2 text-xs text-gray-500">
-          Loading editor…
-        </div>
-        <div className="min-h-[120px] px-3 py-2 text-sm text-gray-400">
+        <div className={`${TOOLBAR_ROW} border-b-0 text-gray-500`}>Loading editor…</div>
+        <div className={`${bodyMinH} px-2 py-1 text-[13px] text-gray-400 sm:py-1.5`}>
           Preparing formatting toolbar…
         </div>
       </div>
@@ -78,9 +83,9 @@ export default function RichTextEditor({ value, onChange }: Props) {
 
   return (
     <div className="rich-text-editor">
-      <div className="flex flex-wrap gap-2 rounded-t-md border border-gray-300 bg-[#f8f5f1] p-2 text-xs">
+      <div className={TOOLBAR_ROW}>
         <select
-          className="rounded border border-gray-300 bg-white px-2 py-1"
+          className={CTRL}
           value={
             editor.isActive("heading", { level: 1 })
               ? "h1"
@@ -112,64 +117,32 @@ export default function RichTextEditor({ value, onChange }: Props) {
           <option value="h2">H2</option>
           <option value="h3">H3</option>
         </select>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          className="rounded border border-gray-300 bg-white px-2 py-1"
-        >
+        <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={CTRL}>
           Bold
         </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          className="rounded border border-gray-300 bg-white px-2 py-1"
-        >
+        <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={CTRL}>
           Italic
         </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className="rounded border border-gray-300 bg-white px-2 py-1"
-        >
+        <button type="button" onClick={() => editor.chain().focus().toggleUnderline().run()} className={CTRL}>
           Underline
         </button>
-        <button
-          type="button"
-          onClick={setLink}
-          className="rounded border border-gray-300 bg-white px-2 py-1"
-        >
+        <button type="button" onClick={setLink} className={CTRL}>
           Link
         </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("left").run()}
-          className="rounded border border-gray-300 bg-white px-2 py-1"
-        >
-          Align Left
+        <button type="button" onClick={() => editor.chain().focus().setTextAlign("left").run()} className={CTRL}>
+          Left
         </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("center").run()}
-          className="rounded border border-gray-300 bg-white px-2 py-1"
-        >
-          Align Center
+        <button type="button" onClick={() => editor.chain().focus().setTextAlign("center").run()} className={CTRL}>
+          Center
         </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().setTextAlign("right").run()}
-          className="rounded border border-gray-300 bg-white px-2 py-1"
-        >
-          Align Right
+        <button type="button" onClick={() => editor.chain().focus().setTextAlign("right").run()} className={CTRL}>
+          Right
         </button>
-        <button
-          type="button"
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className="rounded border border-gray-300 bg-white px-2 py-1"
-        >
-          Bullet List
+        <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={CTRL}>
+          Bullets
         </button>
         <select
-          className="rounded border border-gray-300 bg-white px-2 py-1"
+          className={CTRL}
           value={(editor.getAttributes("textStyle").fontSize as string) || ""}
           onChange={(e) => {
             if (!e.target.value) {
@@ -187,7 +160,7 @@ export default function RichTextEditor({ value, onChange }: Props) {
           ))}
         </select>
         <select
-          className="rounded border border-gray-300 bg-white px-2 py-1"
+          className={`${CTRL} max-w-[9rem]`}
           value={(editor.getAttributes("textStyle").color as string) || ""}
           onChange={(e) => {
             if (!e.target.value) {

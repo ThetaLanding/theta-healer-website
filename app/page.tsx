@@ -2,7 +2,10 @@ import Image from "next/image";
 import fs from "fs";
 import path from "path";
 import type { ReactNode } from "react";
-import ReviewsCarousel from "./components/ReviewsCarousel";
+import ReviewsCarousel, {
+  ReviewBlock,
+  reviewThreeColumnCardClass,
+} from "./components/ReviewsCarousel";
 
 type SectionKey =
   | "hero"
@@ -109,7 +112,7 @@ function unwrapOuterHeadingTag(html: string, tag: "h1" | "h2" | "h3"): string {
 
 /** Inner phrasing HTML for a page-level heading (unwrap saved h1/h2, else single-paragraph inline). */
 function phrasingHtmlForPageHeading(html: string): string {
-  let h = html.trim();
+  const h = html.trim();
   const u1 = unwrapOuterHeadingTag(h, "h1");
   if (u1 !== h) return u1;
   const u2 = unwrapOuterHeadingTag(h, "h2");
@@ -297,7 +300,14 @@ export default function Home() {
               <HtmlContent html={phrasingHtmlForSectionHeading(content.reviews.heading)} as="span" />
             </h2>
           </div>
-          <ReviewsCarousel items={content.reviews.items} />
+          <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4">
+            {content.reviews.items.map((item, idx) => (
+              <ReviewBlock key={idx} quote={item.quote} attribution={item.attribution} />
+            ))}
+          </div>
+          <div className="lg:hidden">
+            <ReviewsCarousel items={content.reviews.items} />
+          </div>
           <div className="mt-4 flex justify-center">
             <a
               href={content.reviews.secondaryButtonHref}
@@ -491,19 +501,15 @@ export default function Home() {
             <h2 className={`text-center ${SECTION_TITLE} tracking-[0.18em] text-[#6b4f62]`}>
               <HtmlContent html={phrasingHtmlForSectionHeading(content.offer.whatsIncludedHeading)} as="span" />
             </h2>
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-4">
               {content.offer.columns.map((col, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col gap-6 rounded-xl px-6 py-8 text-white sm:px-8 sm:py-10"
-                  style={{ backgroundColor: "#b8878a" }}
-                >
+                <article key={idx} className={`${reviewThreeColumnCardClass} gap-6`}>
                   {col.title && (
-                    <h3 className="text-center text-lg sm:text-xl !leading-[0.8]">
+                    <h3 className="text-center text-lg sm:text-xl !leading-[0.8] text-[#6b4f62]">
                       <HtmlContent html={phrasingHtmlForCardHeading(col.title)} as="span" />
                     </h3>
                   )}
-                  <ul className="space-y-3 text-left text-sm sm:text-base">
+                  <ul className="space-y-3 text-left text-sm text-[#6b4f62] sm:text-base">
                     {col.items.map(
                       (item, i) =>
                         item && (
@@ -514,7 +520,7 @@ export default function Home() {
                         )
                     )}
                   </ul>
-                </div>
+                </article>
               ))}
             </div>
             {content.offer.belowColumnsParagraph && (
