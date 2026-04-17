@@ -27,7 +27,11 @@ export default function RootLayout({
       <head>
         <link rel="stylesheet" href="https://use.typekit.net/fai0vbm.css" />
       </head>
-      <body className="min-h-full flex flex-col bg-[#f4f1ec] text-[#6b4f62]">
+      {/* suppressHydrationWarning: extensions (e.g. Grammarly) inject data-* attrs on <body> before React hydrates */}
+      <body
+        className="min-h-full flex flex-col bg-[#f4f1ec] text-[#6b4f62]"
+        suppressHydrationWarning
+      >
         {children}
       </body>
     </html>

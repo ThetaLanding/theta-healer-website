@@ -29,14 +29,37 @@ h3 {
   margin: 0;
 }
 
-/* Hero main headline: explicit display font (matches h2/h3), scales above section titles */
-.hero-main-headline {
+/* Hero only: large display title (sizes / line-height from Tailwind on `page.tsx`) */
+.hero-display-title {
   font-family: "the-seasons", "Times New Roman", serif;
   font-weight: 400;
 }
 
+/* Hero lines: .rich-text-content uses body leading elsewhere — match original hero stack (1.08) */
+.hero-display-title .rich-text-content {
+  line-height: 1.08;
+}
+
+.hero-display-title .rich-text-content h1 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: 1.08 !important;
+}
+
+/* Baseline body copy for saved HTML; editor inline styles still override where set */
+.rich-text-content {
+  font-size: inherit;
+  line-height: 1.5;
+}
+
 .rich-text-content p {
   margin: 0;
+  line-height: 1.5;
+}
+
+.rich-text-content li {
+  line-height: 1.5;
 }
 
 .rich-text-content p + p {

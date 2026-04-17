@@ -57,7 +57,35 @@ export default function AdminPage() {
       try {
         const res = await fetch("/api/content");
         const json = await res.json();
-        setContent(json);
+        const normalizedSection8Items = Array.isArray(json.section8?.items)
+          ? json.section8.items.map((item: { title?: string; body?: string }) => {
+              const title = item?.title ?? "";
+              const body = item?.body ?? "";
+              const merged = [title, body].filter(Boolean).join(" ").trim();
+              return {
+                title: merged,
+                body: "",
+              };
+            })
+          : json.section8?.items;
+
+        const screenshotImages = Array.isArray(json.screenshots?.images)
+          ? [...(json.screenshots.images as string[])]
+          : [];
+        while (screenshotImages.length < 9) screenshotImages.push("");
+        const normalizedScreenshots = {
+          ...json.screenshots,
+          images: screenshotImages.slice(0, 9),
+        };
+
+        setContent({
+          ...json,
+          section8: {
+            ...json.section8,
+            items: normalizedSection8Items,
+          },
+          screenshots: normalizedScreenshots,
+        });
       } catch {
         setError("Failed to load content.");
       }
@@ -155,7 +183,9 @@ export default function AdminPage() {
   ): React.ReactNode => {
     if (typeof value === "string") {
       const isColor = /(?:^|\.)(?:background|color)$/i.test(fieldPath);
-      const isPathLike = /(?:src|href|image|backgroundImage)$/i.test(fieldPath);
+      const isPathLike =
+        /(?:src|href|image|backgroundImage)$/i.test(fieldPath) ||
+        /images\.\d+$/i.test(fieldPath);
       if (isColor || isPathLike) {
         return (
           <input
@@ -169,6 +199,18 @@ export default function AdminPage() {
     }
 
     if (Array.isArray(value)) {
+      if (fieldPath === "about.paragraphs") {
+        const combined = value.filter((item): item is string => typeof item === "string").join("\n\n");
+        return (
+          <div className="space-y-2">
+            <label className="block text-sm">Paragraph</label>
+            <RichTextEditor
+              value={combined}
+              onChange={(html) => onChange([html])}
+            />
+          </div>
+        );
+      }
       return (
         <div className="space-y-3">
           {value.map((item, idx) => (
@@ -190,6 +232,27 @@ export default function AdminPage() {
     }
 
     if (value && typeof value === "object") {
+      if (/^section8\.items\.\d+$/.test(fieldPath)) {
+        const section8Item = value as { title?: string; body?: string };
+        const merged = [section8Item.title ?? "", section8Item.body ?? ""]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        return (
+          <div className="space-y-2">
+            <label className="block text-sm">Text</label>
+            <RichTextEditor
+              value={merged}
+              onChange={(html) =>
+                onChange({
+                  title: html,
+                  body: "",
+                })
+              }
+            />
+          </div>
+        );
+      }
       const entries = Object.entries(value as Record<string, unknown>);
       return (
         <div className="space-y-4">
@@ -241,6 +304,19 @@ export default function AdminPage() {
         {SECTION_KEYS.map((sectionKey) => (
           <section key={sectionKey} className="space-y-4 bg-white rounded-lg p-6">
             <h2 className="text-xl">{SECTION_LABELS[sectionKey]}</h2>
+            {sectionKey === "screenshots" && (
+              <p className="text-sm text-gray-600">
+                Nine slots (grid). Prefer a root path from <code className="text-xs">public/</code>, e.g.{" "}
+                <code className="text-xs">/images/your-shot.jpg</code> (leading <code className="text-xs">/</code>{" "}
+                required for optimized images), or a full <code className="text-xs">https://</code> URL. Leave empty for a
+                placeholder.
+              </p>
+            )}
+            {sectionKey === "reviews" && (
+              <p className="text-sm text-gray-600">
+                Three reviews: the site shows one card at a time with prev/next arrows.
+              </p>
+            )}
             {renderEditor(
               content[sectionKey as keyof Content],
               (next) => updateSection(sectionKey, next),
