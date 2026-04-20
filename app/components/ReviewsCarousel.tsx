@@ -4,9 +4,9 @@ import { useCallback, useState } from "react";
 
 type ReviewItem = { quote?: string; attribution?: string };
 
-/** Same shell as “What’s included” columns on large screens — three-column cards. */
+/** Review card shell (desktop grid + mobile carousel): full height, no inner scroll. */
 export const reviewThreeColumnCardClass =
-  "flex min-h-0 max-h-[min(16rem,52vh)] w-full min-w-0 flex-col overflow-y-auto bg-white/80 px-6 py-5 shadow-sm sm:px-10 sm:py-6 md:rounded-xl";
+  "flex w-full min-w-0 flex-col bg-white/80 px-6 py-5 shadow-sm sm:px-10 sm:py-6 md:rounded-xl";
 
 export function ReviewBlock({ quote, attribution }: ReviewItem) {
   return (
@@ -43,7 +43,7 @@ export default function ReviewsCarousel({ items }: { items: ReviewItem[] }) {
 
   return (
     <div className="relative w-full">
-      <div className="overflow-hidden rounded-xl">
+      <div className="overflow-x-clip rounded-xl">
         <div
           className="flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${index * 100}%)` }}

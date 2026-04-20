@@ -85,6 +85,10 @@ const SECTION_DISPLAY_H1 = "section-display-h1";
 /** Hero display lines — `leading-[1]` + `space-y-2 sm:space-y-3` (same as when you called this look “perfect”) */
 const HERO_DISPLAY_LINE = "leading-[1]";
 
+/** 90% of Tailwind `text-5xl` → `xl:text-8xl` (≈10% smaller than previous hero stack). */
+const HERO_DISPLAY_SIZE =
+  "text-[2.7rem] sm:text-[3.375rem] lg:text-[4.05rem] xl:text-[5.4rem]";
+
 /** Default body copy for landing sections (editor can still change size inline) */
 const BODY_TEXT = "text-sm sm:text-base text-[#6b4f62] leading-relaxed";
 
@@ -180,22 +184,22 @@ export default function Home() {
             <div>
               <h1 className={`hero-display-title ${HERO_DISPLAY_LINE} space-y-2 sm:space-y-3`}>
                 <span
-                  className={`block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
+                  className={`block ${HERO_DISPLAY_SIZE} tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
                 >
                   <HtmlContent html={content.hero.headingLineOne} as="span" />
                 </span>
                 <span
-                  className={`block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
+                  className={`block ${HERO_DISPLAY_SIZE} tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
                 >
                   <HtmlContent html={content.hero.headingLineTwo} as="span" />
                 </span>
                 <span
-                  className={`block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
+                  className={`block ${HERO_DISPLAY_SIZE} tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
                 >
                   <HtmlContent html={content.hero.headingLineThree} as="span" />
                 </span>
                 <span
-                  className={`block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
+                  className={`block ${HERO_DISPLAY_SIZE} tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
                 >
                   <HtmlContent html={content.hero.headingLineFour} as="span" />
                 </span>
