@@ -26,25 +26,28 @@ h1,
 h2,
 h3 {
   font-family: "the-seasons", "Times New Roman", serif;
+  font-weight: 700;
   margin: 0;
 }
 
 /* Hero only: large display title (sizes / line-height from Tailwind on `page.tsx`) */
 .hero-display-title {
   font-family: "the-seasons", "Times New Roman", serif;
-  font-weight: 400;
+  font-weight: 900;
+  /* Typekit may expose only one real weight for this face; stroke gives consistent heavier display. */
+  -webkit-text-stroke: 0.35px currentColor;
 }
 
 /* Hero lines: .rich-text-content uses body leading elsewhere — match original hero stack (1.08) */
 .hero-display-title .rich-text-content {
-  line-height: 1.08;
+  line-height: 1;
 }
 
 .hero-display-title .rich-text-content h1 {
   margin: 0;
   font-size: inherit;
   font-weight: inherit;
-  line-height: 1.08 !important;
+  line-height: 1 !important;
 }
 
 /* Baseline body copy for saved HTML; editor inline styles still override where set */

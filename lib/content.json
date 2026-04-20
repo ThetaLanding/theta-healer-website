@@ -1,10 +1,10 @@
 {
   "hero": {
     "backgroundLeft": "#b8878a",
-    "headingLineOne": "<h1><strong>The</strong></h1><p></p>",
-    "headingLineTwo": "<h1><strong>EXPANSION</strong></h1><p></p>",
-    "headingLineThree": "<h1><strong>PRIVATE</strong></h1><p></p>",
-    "headingLineFour": "<h1><strong>MENTORSHIP</strong></h1><p></p>",
+    "headingLineOne": "<h1>The</h1><p></p>",
+    "headingLineTwo": "<h1>EXPANSION</h1><p></p>",
+    "headingLineThree": "<h1>PRIVATE</h1><p></p>",
+    "headingLineFour": "<h1>MENTORSHIP</h1><p></p>",
     "paragraph": "<p><span style=\"font-size: 18px;\">3 Months of 1:1 subconscious recalibration for soul-led high-achievers ready to step into their next level.</span></p>",
     "primaryButtonLabel": "<p><span style=\"font-size: 20px;\"><strong>BOOK A CALL</strong></span></p>",
     "primaryButtonHref": "https://calendly.com/createhigher/clarity?month=2026-04",
@@ -20,7 +20,7 @@
       "<p>You long for a life and career lived in a state of ease, to relieve <strong>your nervous system that's in constant high alert.</strong></p>",
       "<p>You've done the mindset and inner work, been to therapy, and they've helped, but <strong>you're ready to stop analyzing and start clearing the root </strong>of what's actually keeping you living the same day to day on a relentless repeat cycle.</p>"
     ],
-    "imageSrc": "/images/section2.png"
+    "imageSrc": "/images/section2-2.jpg"
   },
   "section3": {
     "background": "#e7bda4",

@@ -4,7 +4,6 @@ import path from "path";
 import type { ReactNode } from "react";
 import ReviewsCarousel, {
   ReviewBlock,
-  reviewThreeColumnCardClass,
 } from "./components/ReviewsCarousel";
 
 type SectionKey =
@@ -76,18 +75,15 @@ const BUTTON_TERTIARY = `${BUTTON_BASE} bg-[#f4f1ec] text-[#6b4f62] hover:bg-[#e
  */
 const SECTION_TITLE = "text-2xl sm:text-3xl lg:text-4xl !leading-[0.8]";
 
-/**
- * Offer main title + footer CTA title (h1): same breakpoints as h2 / SECTION_TITLE,
- * font size ×1.32 (= ×1.2 then +10%).
- */
+/** Offer main title + footer CTA title (h1): sized ~15% above prior display scale. */
 const SECTION_TITLE_DISPLAY_H1 =
-  "text-[1.98rem] sm:text-[2.475rem] lg:text-[2.97rem] !leading-[0.8]";
+  "text-[2.28rem] sm:text-[2.85rem] lg:text-[3.42rem] !leading-[0.8]";
 
 /** Class on offer/footer h1 only — avoids matching TipTap <h1> lines nested inside .hero-display-title */
 const SECTION_DISPLAY_H1 = "section-display-h1";
 
-/** Hero display lines — `leading-[1.08]` + `space-y-2 sm:space-y-3` (same as when you called this look “perfect”) */
-const HERO_DISPLAY_LINE = "leading-[1.08]";
+/** Hero display lines — `leading-[1]` + `space-y-2 sm:space-y-3` (same as when you called this look “perfect”) */
+const HERO_DISPLAY_LINE = "leading-[1]";
 
 /** Default body copy for landing sections (editor can still change size inline) */
 const BODY_TEXT = "text-sm sm:text-base text-[#6b4f62] leading-relaxed";
@@ -184,22 +180,22 @@ export default function Home() {
             <div>
               <h1 className={`hero-display-title ${HERO_DISPLAY_LINE} space-y-2 sm:space-y-3`}>
                 <span
-                  className={`block text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
+                  className={`block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
                 >
                   <HtmlContent html={content.hero.headingLineOne} as="span" />
                 </span>
                 <span
-                  className={`block text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
+                  className={`block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
                 >
                   <HtmlContent html={content.hero.headingLineTwo} as="span" />
                 </span>
                 <span
-                  className={`block text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
+                  className={`block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
                 >
                   <HtmlContent html={content.hero.headingLineThree} as="span" />
                 </span>
                 <span
-                  className={`block text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
+                  className={`block text-5xl sm:text-6xl lg:text-7xl xl:text-8xl tracking-[0.18em] ${HERO_DISPLAY_LINE}`}
                 >
                   <HtmlContent html={content.hero.headingLineFour} as="span" />
                 </span>
@@ -232,39 +228,37 @@ export default function Home() {
       </section>
     ),
     section2: () => (
-      <section className="relative isolate w-full overflow-hidden" style={{ backgroundColor: content.section2.background }}>
-        <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 md:block lg:w-[46%]" aria-hidden>
-          <Image
-            src={publicImageSrcWithMtime(content.section2.imageSrc)}
-            alt=""
-            fill
-            sizes="50vw"
-            className="object-contain object-right"
-          />
-        </div>
-        <div className="relative z-10 mx-auto max-w-6xl px-6 pt-20 pb-8 md:px-10 md:pb-24 md:pt-24 lg:px-16">
-          <div className="flex max-w-xl flex-col gap-6 lg:max-w-2xl">
-            {content.section2.heading && (
-              <h2 className={`${SECTION_TITLE} text-[#6b4f62]`}>
-                <HtmlContent html={phrasingHtmlForSectionHeading(content.section2.heading)} as="span" />
-              </h2>
-            )}
-            <ul className="space-y-3 text-sm sm:text-base">
-              {content.section2.bullets.map((item, idx) => item && (
-                <li key={idx} className="flex gap-3"><span className="mt-1 text-[#ffa769]">•</span><HtmlContent html={item} className="flex-1" /></li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <div className="relative z-10 px-6 pb-20 md:hidden">
-          <div className="relative mx-auto aspect-[3/4] w-full max-w-lg min-h-[220px] max-h-[55vh]">
-            <Image
-              src={publicImageSrcWithMtime(content.section2.imageSrc)}
-              alt=""
-              fill
-              sizes="100vw"
-              className="object-contain object-center"
-            />
+      <section
+        className="relative w-full min-h-[420px] overflow-hidden"
+        style={{ backgroundColor: content.section2.background }}
+      >
+        <Image
+          src={publicImageSrcWithMtime(content.section2.imageSrc)}
+          alt=""
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        <div className="relative mx-auto flex max-w-6xl justify-end px-6 py-20 md:px-10 md:py-24 lg:px-16">
+          <div
+            className="w-full md:w-2/3 px-6 sm:px-10 md:px-12 py-10 sm:py-12 md:py-14"
+            style={{ backgroundColor: "rgba(244,241,236,0.82)" }}
+          >
+            <div className="flex max-w-2xl flex-col gap-6 text-[#6b4f62]">
+              {content.section2.heading && (
+                <h2 className={SECTION_TITLE}>
+                  <HtmlContent html={phrasingHtmlForSectionHeading(content.section2.heading)} as="span" />
+                </h2>
+              )}
+              <ul className="space-y-3 text-sm sm:text-base">
+                {content.section2.bullets.map((item, idx) => item && (
+                  <li key={idx} className="flex gap-3">
+                    <span className="mt-1 text-[#ffa769]">•</span>
+                    <HtmlContent html={item} className="flex-1" />
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -322,7 +316,7 @@ export default function Home() {
       </section>
     ),
     about: () => (
-      <section className="w-full py-20 md:py-24" style={{ backgroundColor: content.about.backgroundOuter }}>
+      <section className="w-full pt-0 pb-0 md:pt-0 md:pb-0" style={{ backgroundColor: content.about.backgroundOuter }}>
         <div className="mx-auto max-w-6xl px-6 md:px-10 lg:px-16">
           <div
             className="flex w-full flex-col gap-6 px-6 py-10 sm:px-10 sm:py-12 md:px-16 md:py-16"
@@ -403,7 +397,7 @@ export default function Home() {
                 return (
                 <div
                   key={idx}
-                  className="relative aspect-video overflow-hidden rounded-lg bg-gray-200 ring-1 ring-[#6b4f62]/10"
+                  className="relative aspect-video overflow-hidden rounded-lg bg-[#f4f1ec] ring-1 ring-[#6b4f62]/10"
                 >
                   {trimmed ? (
                     !useNextImage ? (
@@ -413,14 +407,14 @@ export default function Home() {
                           isRemote || isProtocolRelative ? trimmed : fallbackImgSrc
                         )}
                         alt=""
-                        className="absolute inset-0 h-full w-full object-cover"
+                        className="absolute inset-0 h-full w-full object-contain"
                       />
                     ) : (
                       <Image
                         src={publicImageSrcWithMtime(trimmed)}
                         alt=""
                         fill
-                        className="object-cover"
+                        className="object-contain"
                         sizes="(max-width: 640px) 50vw, 33vw"
                       />
                     )
@@ -503,13 +497,16 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-4">
               {content.offer.columns.map((col, idx) => (
-                <article key={idx} className={`${reviewThreeColumnCardClass} gap-6`}>
+                <article
+                  key={idx}
+                  className="flex flex-col gap-6 rounded-xl bg-[#b8878a] px-6 py-8 text-white sm:px-8 sm:py-10"
+                >
                   {col.title && (
-                    <h3 className="text-center text-lg sm:text-xl !leading-[0.8] text-[#6b4f62]">
+                    <h3 className="text-center text-lg sm:text-xl !leading-[0.8]">
                       <HtmlContent html={phrasingHtmlForCardHeading(col.title)} as="span" />
                     </h3>
                   )}
-                  <ul className="space-y-3 text-left text-sm text-[#6b4f62] sm:text-base">
+                  <ul className="space-y-3 text-left text-sm sm:text-base">
                     {col.items.map(
                       (item, i) =>
                         item && (
