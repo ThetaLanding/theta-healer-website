@@ -22,7 +22,7 @@ type SectionKey =
   | "closing"
   | "footer";
 
-type Content = typeof import("../lib/content.json") & {
+type Content = typeof import("../../lib/content.json") & {
   sectionOrder?: SectionKey[];
 };
 
