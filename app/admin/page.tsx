@@ -235,7 +235,7 @@ export default function AdminPage() {
                   item,
                   (next) => {
                     const nextArray = [...value];
-                    nextArray[idx] = next;
+                    nextArray[idx] = next as string;
                     onChange(nextArray);
                   },
                   `${fieldPath}.${idx}`,
