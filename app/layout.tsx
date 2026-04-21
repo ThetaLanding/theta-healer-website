@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Expansion Private Mentorship",
+  title: "Create Higher",
   description:
     "3 Months of 1:1 subconscious recalibration for soul-led high-achievers ready to step into their next level.",
 };
