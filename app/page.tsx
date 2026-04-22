@@ -23,9 +23,6 @@ function publicImageSrcWithMtime(src: string): string {
   }
 }
 
-const BUTTON_BASE =
-  "inline-flex items-center justify-center text-center rounded-full px-8 py-3 text-xs tracking-[0.18em] uppercase transition-colors [&_.rich-text-content]:text-center [&_.rich-text-content_p]:text-center [&_.rich-text-content_span]:text-center";
-const BUTTON_PRIMARY = `${BUTTON_BASE} bg-[#ffa769] text-[#6b4f62] hover:bg-[#ff9450]`;
 const HERO_DISPLAY_LINE = "leading-[1]";
 const HERO_DISPLAY_SIZE =
   "text-[2.7rem] sm:text-[3.375rem] lg:text-[4.05rem] xl:text-[5.4rem]";
@@ -55,14 +52,15 @@ export default function Home() {
             <p className={`${BODY_TEXT} text-white/95 font-bold`}>
               Subconscious reprogramming for root-cause healing
             </p>
-            <div>
+            <p className={`${BODY_TEXT} text-white/95 font-bold`}>
+              Reach Out:{" "}
               <a
                 href="mailto:hello@createhigher.com"
-                className={`${BUTTON_PRIMARY} font-bold text-sm`}
+                className="underline underline-offset-4 hover:opacity-90"
               >
-                Reach out
+                hello@createhigher.com
               </a>
-            </div>
+            </p>
           </div>
         </div>
         <div className="relative md:w-1/2 w-full min-h-[300px] md:min-h-[70vh]">
