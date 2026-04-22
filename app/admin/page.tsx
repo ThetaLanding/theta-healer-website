@@ -122,11 +122,18 @@ export default function AdminPage() {
         body: JSON.stringify(content, null, 2),
       });
       if (!res.ok) {
-        throw new Error("Save failed");
+        const payload = await res.json().catch(() => ({}));
+        const serverError =
+          typeof payload?.error === "string" ? payload.error : "Save failed";
+        const serverDetails =
+          typeof payload?.details === "string" ? ` (${payload.details})` : "";
+        throw new Error(`${serverError}${serverDetails}`);
       }
       setSuccess("Saved successfully.");
-    } catch {
-      setError("Failed to save content.");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to save content.";
+      setError(message);
     } finally {
       setSaving(false);
     }
