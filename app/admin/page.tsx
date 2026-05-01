@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import RichTextEditor from "./RichTextEditor";
 type Content = typeof import("../../lib/content.json");
+import fallbackContent from "../../lib/content.json";
 
 const SECTION_KEYS = [
   "hero",
@@ -42,6 +43,12 @@ const SECTION_LABELS: Record<SectionKey, string> = {
   footer: "Footer",
 };
 
+function isContentPayload(value: unknown): value is Content {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return SECTION_KEYS.every((k) => k in record);
+}
+
 function prettifyFieldLabel(key: string) {
   return key
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -71,6 +78,15 @@ export default function AdminPage() {
       try {
         const res = await fetch("/api/content");
         const json = await res.json();
+        if (!res.ok || !isContentPayload(json)) {
+          setContent(fallbackContent as Content);
+          setError(
+            typeof json?.details === "string"
+              ? `Could not load live content: ${json.details}`
+              : "Could not load live content. Showing bundled content snapshot."
+          );
+          return;
+        }
         const normalizedSection8Items = Array.isArray(json.section8?.items)
           ? json.section8.items.map((item: { title?: string; body?: string }) => {
               const title = item?.title ?? "";
@@ -101,7 +117,8 @@ export default function AdminPage() {
           screenshots: normalizedScreenshots,
         });
       } catch {
-        setError("Failed to load content.");
+        setContent(fallbackContent as Content);
+        setError("Failed to load live content. Showing bundled content snapshot.");
       }
     };
     load();

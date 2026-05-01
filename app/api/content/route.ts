@@ -26,7 +26,12 @@ type GitHubContentResponse = {
 };
 
 function shouldUseGitHubStorage() {
-  return Boolean(process.env.VERCEL);
+  return Boolean(
+    process.env.VERCEL &&
+      process.env.GITHUB_TOKEN?.trim() &&
+      process.env.GITHUB_REPO_OWNER?.trim() &&
+      process.env.GITHUB_REPO_NAME?.trim()
+  );
 }
 
 function getGitHubConfig(): GitHubConfig {
@@ -137,6 +142,18 @@ export async function POST(request: NextRequest) {
         success: true,
         storage: "github",
       });
+    }
+
+    if (process.env.VERCEL) {
+      return NextResponse.json(
+        {
+          error:
+            "Admin save is not configured in production. Missing GitHub env vars.",
+          details:
+            "Set GITHUB_TOKEN, GITHUB_REPO_OWNER, and GITHUB_REPO_NAME in Vercel project settings.",
+        },
+        { status: 500 }
+      );
     }
 
     await writeContent(body);
