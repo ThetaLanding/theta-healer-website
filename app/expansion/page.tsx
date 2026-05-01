@@ -322,6 +322,14 @@ export default function Home() {
     about: () => (
       <section className="w-full pt-0 pb-0 md:pt-0 md:pb-0" style={{ backgroundColor: content.about.backgroundOuter }}>
         <div className="mx-auto max-w-6xl px-6 md:px-10 lg:px-16">
+          <div className="relative aspect-[16/7] w-full overflow-hidden">
+            <Image
+              src={publicImageSrcWithMtime("/images/Stas_bio.png")}
+              alt="Stasia portrait"
+              fill
+              className="object-cover"
+            />
+          </div>
           <div
             className="flex w-full flex-col gap-6 px-6 py-10 sm:px-10 sm:py-12 md:px-16 md:py-16"
             style={{ backgroundColor: content.about.backgroundInner }}
