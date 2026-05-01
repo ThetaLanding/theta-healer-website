@@ -93,6 +93,23 @@ function editorHtmlToBulletArray(html: string) {
   return raw ? [raw] : [""];
 }
 
+function section8ItemsToEditorHtml(items: Array<{ title?: string; body?: string }>) {
+  const listItems = items
+    .map((item) => [item.title ?? "", item.body ?? ""].filter(Boolean).join(" ").trim())
+    .map((item) => stripOuterParagraph(item))
+    .filter(Boolean)
+    .map((inner) => `<li>${inner}</li>`)
+    .join("");
+  return listItems ? `<ul>${listItems}</ul>` : "<ul><li></li></ul>";
+}
+
+function editorHtmlToSection8Items(html: string) {
+  return editorHtmlToBulletArray(html).map((item) => ({
+    title: item,
+    body: "",
+  }));
+}
+
 export default function AdminPage() {
   const [inputPassword, setInputPassword] = useState("");
   const [authorized, setAuthorized] = useState(false);
@@ -303,7 +320,30 @@ export default function AdminPage() {
       }
 
       const allStrings = value.length > 0 && value.every((item): item is string => typeof item === "string");
-      if (fieldPath === "section3.bullets" && allStrings) {
+      if (
+        fieldPath === "section8.items" &&
+        value.every((item) => item !== null && typeof item === "object")
+      ) {
+        return (
+          <div className="space-y-1">
+            <label className="block text-[11px] font-medium text-gray-600">
+              Items (single editor)
+            </label>
+            <RichTextEditor
+              value={section8ItemsToEditorHtml(value as Array<{ title?: string; body?: string }>)}
+              onChange={(html) => onChange(editorHtmlToSection8Items(html))}
+            />
+          </div>
+        );
+      }
+      if (
+        (
+          fieldPath === "section3.bullets" ||
+          fieldPath === "imagine.bullets" ||
+          fieldPath === "whyWorks.paragraphs"
+        ) &&
+        allStrings
+      ) {
         return (
           <div className="space-y-1">
             <label className="block text-[11px] font-medium text-gray-600">
@@ -542,6 +582,44 @@ export default function AdminPage() {
                 })
               }
             />
+          </div>
+        );
+      }
+      if (/^offer\.columns\.\d+$/.test(fieldPath)) {
+        const column = value as { title?: unknown; items?: unknown };
+        const stringItems =
+          Array.isArray(column.items) && column.items.every((item) => typeof item === "string")
+            ? (column.items as string[])
+            : [];
+        return (
+          <div className="space-y-2">
+            <div className="space-y-0.5">
+              <label className="block text-[11px] font-medium text-gray-600">Title</label>
+              {renderEditor(
+                column.title ?? "",
+                (next) =>
+                  onChange({
+                    ...column,
+                    title: next,
+                  }),
+                `${fieldPath}.title`,
+                false
+              )}
+            </div>
+            <div className="space-y-0.5">
+              <label className="block text-[11px] font-medium text-gray-600">
+                Items (single editor)
+              </label>
+              <RichTextEditor
+                value={bulletArrayToEditorHtml(stringItems)}
+                onChange={(html) =>
+                  onChange({
+                    ...column,
+                    items: editorHtmlToBulletArray(html),
+                  })
+                }
+              />
+            </div>
           </div>
         );
       }
