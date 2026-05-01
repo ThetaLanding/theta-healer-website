@@ -61,6 +61,38 @@ function isLikelyHtml(value: string) {
   return /<[^>]+>/.test(value);
 }
 
+function stripOuterParagraph(html: string) {
+  const t = html.trim();
+  const m = t.match(/^<p(\s[^>]*)?>([\s\S]*)<\/p>\s*$/i);
+  return m ? m[2].trim() : t;
+}
+
+function bulletArrayToEditorHtml(items: string[]) {
+  const listItems = items
+    .map((item) => stripOuterParagraph(item))
+    .filter(Boolean)
+    .map((inner) => `<li>${inner}</li>`)
+    .join("");
+  return listItems ? `<ul>${listItems}</ul>` : "<ul><li></li></ul>";
+}
+
+function editorHtmlToBulletArray(html: string) {
+  if (typeof window === "undefined") return [html];
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const listItems = Array.from(doc.querySelectorAll("li"))
+    .map((node) => node.innerHTML.trim())
+    .filter(Boolean);
+  if (listItems.length > 0) return listItems.map((item) => `<p>${item}</p>`);
+
+  const paragraphs = Array.from(doc.querySelectorAll("p"))
+    .map((node) => node.innerHTML.trim())
+    .filter(Boolean);
+  if (paragraphs.length > 0) return paragraphs.map((item) => `<p>${item}</p>`);
+
+  const raw = html.trim();
+  return raw ? [raw] : [""];
+}
+
 export default function AdminPage() {
   const [inputPassword, setInputPassword] = useState("");
   const [authorized, setAuthorized] = useState(false);
@@ -271,6 +303,19 @@ export default function AdminPage() {
       }
 
       const allStrings = value.length > 0 && value.every((item): item is string => typeof item === "string");
+      if (fieldPath === "section3.bullets" && allStrings) {
+        return (
+          <div className="space-y-1">
+            <label className="block text-[11px] font-medium text-gray-600">
+              Bullets (single editor)
+            </label>
+            <RichTextEditor
+              value={bulletArrayToEditorHtml(value)}
+              onChange={(html) => onChange(editorHtmlToBulletArray(html))}
+            />
+          </div>
+        );
+      }
       if (allStrings && fieldPath !== "screenshots.images") {
         return (
           <div className="space-y-1.5">
