@@ -42,6 +42,18 @@ const SECTION_LABELS: Record<SectionKey, string> = {
   footer: "Footer",
 };
 
+function prettifyFieldLabel(key: string) {
+  return key
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\./g, " ")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function isLikelyHtml(value: string) {
+  return /<[^>]+>/.test(value);
+}
+
 export default function AdminPage() {
   const [inputPassword, setInputPassword] = useState("");
   const [authorized, setAuthorized] = useState(false);
@@ -49,6 +61,8 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<SectionKey>("hero");
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authorized) return;
@@ -130,6 +144,7 @@ export default function AdminPage() {
         throw new Error(`${serverError}${serverDetails}`);
       }
       setSuccess("Saved successfully.");
+      setLastSavedAt(new Date().toLocaleTimeString());
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to save content.";
@@ -206,11 +221,20 @@ export default function AdminPage() {
           />
         );
       }
+      if (isLikelyHtml(value)) {
+        return (
+          <RichTextEditor
+            value={value}
+            onChange={(html) => onChange(html)}
+            compact={richTextCompact}
+          />
+        );
+      }
       return (
-        <RichTextEditor
+        <textarea
+          className="w-full resize-y rounded-md border border-gray-300 px-2 py-1 text-[13px] min-h-[64px]"
           value={value}
-          onChange={(html) => onChange(html)}
-          compact={richTextCompact}
+          onChange={(e) => onChange(e.target.value)}
         />
       );
     }
@@ -230,6 +254,38 @@ export default function AdminPage() {
       }
 
       const allStrings = value.length > 0 && value.every((item): item is string => typeof item === "string");
+      if (allStrings && fieldPath !== "screenshots.images") {
+        return (
+          <div className="space-y-1.5">
+            {value.map((item, idx) => (
+              <div key={idx} className="space-y-0.5 rounded border border-gray-200 p-1.5">
+                <label className="block text-[11px] font-medium text-gray-500">Item {idx + 1}</label>
+                {isLikelyHtml(item) ? (
+                  <RichTextEditor
+                    value={item}
+                    onChange={(next) => {
+                      const nextArray = [...value];
+                      nextArray[idx] = next;
+                      onChange(nextArray);
+                    }}
+                    compact
+                  />
+                ) : (
+                  <textarea
+                    className="w-full resize-y rounded-md border border-gray-300 px-2 py-1 text-[13px] min-h-[52px]"
+                    value={item}
+                    onChange={(e) => {
+                      const nextArray = [...value];
+                      nextArray[idx] = e.target.value;
+                      onChange(nextArray);
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      }
       if (fieldPath === "screenshots.images" && allStrings) {
         return (
           <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 md:grid-cols-3">
@@ -432,7 +488,9 @@ export default function AdminPage() {
         <div className="space-y-2">
           {entries.map(([key, nested]) => (
             <div key={key} className="space-y-0.5">
-              <label className="block text-[11px] font-medium text-gray-600 capitalize">{key}</label>
+              <label className="block text-[11px] font-medium text-gray-600">
+                {prettifyFieldLabel(key)}
+              </label>
               {renderEditor(
                 nested,
                 (next) =>
@@ -461,41 +519,60 @@ export default function AdminPage() {
   return (
     <main className="min-h-screen bg-[#f4f1ec] text-[#6b4f62] px-3 py-4 pb-24 sm:px-4 sm:pb-28">
       <div className="max-w-7xl mx-auto space-y-3">
-        <header>
-          <h1 className="text-lg font-semibold tracking-tight">Editor Dashboard</h1>
+        <header className="rounded-md border border-gray-200 bg-white p-3 shadow-sm space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="text-lg font-semibold tracking-tight">Editor Dashboard</h1>
+            <div className="text-[11px] text-gray-600">
+              {lastSavedAt ? `Last saved at ${lastSavedAt}` : "Not saved in this session yet"}
+            </div>
+          </div>
+          <p className="text-xs text-gray-600">
+            Compact mode: edit one section at a time, then click Save Changes.
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {SECTION_KEYS.map((sectionKey) => (
+              <button
+                key={sectionKey}
+                type="button"
+                onClick={() => setActiveSection(sectionKey)}
+                className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold tracking-wide uppercase ${
+                  activeSection === sectionKey
+                    ? "border-[#b8878a] bg-[#b8878a] text-white"
+                    : "border-gray-300 bg-white text-[#6b4f62]"
+                }`}
+              >
+                {SECTION_LABELS[sectionKey]}
+              </button>
+            ))}
+          </div>
         </header>
 
         {error && <p className="text-xs text-red-600">{error}</p>}
         {success && <p className="text-xs text-emerald-700">{success}</p>}
 
-        {SECTION_KEYS.map((sectionKey) => (
-          <section
-            key={sectionKey}
-            className="space-y-2 bg-white rounded-md border border-gray-200/80 p-3 shadow-sm"
-          >
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-[#5a4154]">
-              {SECTION_LABELS[sectionKey]}
-            </h2>
-            {sectionKey === "screenshots" && (
-              <p className="text-xs text-gray-600 leading-snug">
-                Nine slots (grid). Prefer a root path from <code className="text-xs">public/</code>, e.g.{" "}
-                <code className="text-xs">/images/your-shot.jpg</code> (leading <code className="text-xs">/</code>{" "}
-                required for optimized images), or a full <code className="text-xs">https://</code> URL. Leave empty for a
-                placeholder.
-              </p>
-            )}
-            {sectionKey === "reviews" && (
-              <p className="text-[11px] text-gray-600 leading-snug">
-                Large screens: three columns on the site; smaller screens: one card with prev/next.
-              </p>
-            )}
-            {renderEditor(
-              content[sectionKey as keyof Content],
-              (next) => updateSection(sectionKey, next),
-              sectionKey
-            )}
-          </section>
-        ))}
+        <section className="space-y-2 bg-white rounded-md border border-gray-200/80 p-3 shadow-sm">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-[#5a4154]">
+            {SECTION_LABELS[activeSection]}
+          </h2>
+          {activeSection === "screenshots" && (
+            <p className="text-xs text-gray-600 leading-snug">
+              Nine slots (grid). Prefer a root path from <code className="text-xs">public/</code>, e.g.{" "}
+              <code className="text-xs">/images/your-shot.jpg</code> (leading <code className="text-xs">/</code>{" "}
+              required for optimized images), or a full <code className="text-xs">https://</code> URL. Leave empty for a
+              placeholder.
+            </p>
+          )}
+          {activeSection === "reviews" && (
+            <p className="text-[11px] text-gray-600 leading-snug">
+              Large screens: three columns on the site; smaller screens: one card with prev/next.
+            </p>
+          )}
+          {renderEditor(
+            content[activeSection as keyof Content],
+            (next) => updateSection(activeSection, next),
+            activeSection
+          )}
+        </section>
       </div>
 
       <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 flex justify-end p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6">
